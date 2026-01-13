@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Social Media message sender",
+  "name": "Social Media Message Sender",
   "version": "1.0",
   "description": "An extension that auto select all friends to send messages.",
   "action": {
@@ -8,11 +8,24 @@
     "default_title": "Open Platforms"
   },
   "permissions": [
-    "tabs"
+    "tabs",
+    "storage"
   ],
   "host_permissions": [
-    "https://*.facebook.com/",
-    "https://*.instagram.com/",
-    "https://*.tiktok.com/"
+    "https://*.facebook.com/*",
+    "https://*.instagram.com/*",
+    "https://*.tiktok.com/*",
+    "https://*.snapchat.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.facebook.com/*",
+        "https://*.instagram.com/*",
+        "https://*.tiktok.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
   ]
 }

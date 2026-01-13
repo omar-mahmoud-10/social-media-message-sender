@@ -1,49 +1,44 @@
-// This runs as soon as the file loads
-setTimeout(() => {
-    // 1. Get the name from the URL
-    const params = new URLSearchParams(window.location.search);
-    const platform = params.get('name');
+// welcome.js المحدث
+const container = document.getElementById('friends-container');
+const statusText = document.getElementById('status-text');
 
-    if (platform) {
-        // 2. Set the Meta Title (the tab name)
-        document.title = platform;
-
-        // 3. Set the H1 text to match that Meta Title
-        const h1Element = document.getElementById('display-title');
-        if (h1Element) {
-            h1Element.textContent = document.title;
-        }
+// دالة لاستقبال الأسماء وحفظها في التخزين المؤقت لضمان عدم الضياع
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "friend_found") {
+        container.style.display = 'block';
+        statusText.textContent = "Live Scanning...";
         
-        console.log("Success: Title and H1 updated to " + platform);
+        // حفظ الاسم في التخزين المحلي للمتصفح (لتجنب التحميل لمرة واحدة فقط)
+        chrome.storage.local.get(['savedFriends'], (result) => {
+            let friends = result.savedFriends || [];
+            if (!friends.includes(request.name)) {
+                friends.push(request.name);
+                chrome.storage.local.set({ savedFriends: friends }, () => {
+                    addFriendUI(request.name);
+                });
+            }
+        });
     }
-}, 3000); // 3 second delay
+});
 
+function addFriendUI(name) {
+    if (document.getElementById(`f-${name}`)) return;
 
-//scroll
-// Set your coordinates here
-// const targetX = 987;
-// const targetY = 924;
-
-// let autoScroller = setInterval(() => {
-//     // 1. Find the element at that point
-//     let el = document.elementFromPoint(targetX, targetY);
+    const div = document.createElement('div');
+    div.className = 'friend-item';
+    div.id = `f-${name}`;
+    div.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" checked>
+            <span>${name}</span>
+        </div>
+        <button class="msg-btn" data-name="${name}">Message</button>
+    `;
+    container.appendChild(div);
     
-//     // 2. Look for the nearest parent that can actually scroll
-//     while (el) {
-//         if (el.scrollHeight > el.clientHeight) {
-//             // Found it! Move the scrollbar down 100px
-//             el.scrollBy({
-//                 top: 100,
-//                 behavior: 'smooth'
-//             });
-//             console.log("Scrolling container:", el);
-//             return; // Exit once we scroll the right box
-//         }
-//         el = el.parentElement;
-//     }
-    
-//     // 3. Fallback to window if no box is found
-//     window.scrollBy(0, 100);
-// }, 500);
+    // ربط الزر
+    div.querySelector('.msg-btn').onclick = () => alert("Preparing message for " + name);
+}
 
-// TO STOP: clearInterval(autoScroller);
+// مسح التخزين عند بدء التشغيل الجديد إذا أردت
+// chrome.storage.local.clear();
